@@ -14,6 +14,9 @@ declare (strict_types = 1);
 namespace Cawa\Console;
 
 use Cawa\App\AbstractApp;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -95,15 +98,25 @@ class App extends AbstractApp
     public function addCommandDir(string $path, string $namespace) : self
     {
         $declared = get_declared_classes();
-        foreach (glob(rtrim($path) . '/*.php') as $file) {
-            require $file;
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(rtrim($path)));
+        $files = new RegexIterator($iterator, '`^.*\.php$`', RegexIterator::GET_MATCH);
+
+        foreach ($files as $file) {
+            if (array_search($file[0], get_included_files()) === false) {
+                require $file[0];
+            }
         }
 
         $currentClasses = get_declared_classes();
 
         foreach (array_diff($currentClasses, $declared) as $class) {
             if (stripos($class, $namespace) === 0) {
-                self::$application->add(new $class);
+
+                $reflection = new \ReflectionClass($class);
+                if ($reflection->isInstantiable()) {
+                    self::$application->add(new $class);
+                }
             }
         }
 

@@ -19,6 +19,8 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 
 class ConsoleOutput extends BaseConsoleOutput implements ConsoleOutputInterface
 {
+    use OutputTrait;
+
     /**
      * {@inheritdoc}
      */
@@ -28,51 +30,32 @@ class ConsoleOutput extends BaseConsoleOutput implements ConsoleOutputInterface
         OutputFormatterInterface $formatter = null
     ) {
         parent::__construct($verbosity, $decorated, $formatter);
+
+        $error = fopen($this->hasStderrSupport() ? 'php://stderr' : 'php://output', 'w');
+        $this->setErrorOutput(new ErrorOutput($error,
+            $this->getVerbosity(),
+            $this->isDecorated(),
+            $this->getFormatter()
+        ));
+
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function doWrite($message, $newline)
-    {
-        if (trim($message) != '') {
-            $message = $this->prefixWithTimestamp($message);
-        }
+    const PREFIX_TIMESTAMP = 1;
+    const PREFIX_DURATION = 2;
 
-        parent::doWrite($message, $newline);
-    }
+    const ERROR_ERROR = '<bg=red;fg=white>%s</>';
+    const ERROR_WARNING = '<fg=red>%s</>';
 
     /**
-     * @var float
-     */
-    private $previous;
-
-    /**
-     * Add timestamp/duration to given string
+     * @param string $text
+     * @param string $type
      *
-     * @param string $message
-     *
-     * @return string
+     * @return $this|self
      */
-    public function prefixWithTimestamp($message)
+    public function writeError(string $text, string $type = self::ERROR_ERROR) : self
     {
-        $diff = $this->previous ? round((microtime(true) - $this->previous), 3) : 0;
-        $this->previous = microtime(true);
+        $this->getErrorOutput()->writeln(sprintf($type, $text));
 
-        $microtime = explode(' ', (string) microtime())[0];
-        $microtime = substr((string) round($microtime, 3), 2, 3);
-        $microtime = str_pad(is_bool($microtime) ? '0' : $microtime, 3, '0');
-
-        $prefix = sprintf(
-            '<fg=white>[%s.%s]</> <fg=yellow>[+%s s]</>',
-            date('Y-m-d H:i:s'),
-            $microtime,
-            str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)
-        );
-        $prefix = $this->getFormatter()->format($prefix);
-
-        $message = str_pad($prefix, strlen($prefix) + 1) . $message;
-
-        return $message;
+        return $this;
     }
 }

@@ -25,31 +25,44 @@ class Application extends \Symfony\Component\Console\Application
      */
     protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
     {
+        self::$application = $this;
+
+        $change = false;
         if (!in_array($command->getName(), [
             'help',
             'list',
         ])) {
+            $change = true;
+        }
+
+        if ($change) {
             $output = new ConsoleOutput(
                 $output->getVerbosity(),
                 $output->isDecorated(),
                 $output->getFormatter()
             );
-        }
+      }
 
         if ($command instanceof \Cawa\Console\Command) {
-            $command->setInput($input);
-            $command->setOutput($output);
+            $command->setInput($input)
+                ->setOutput($output)
+                ->setStart();
         }
 
         return parent::doRunCommand($command, $input, $output);
     }
 
     /**
+     * @var self
+     */
+    private static $application;
+
+    /**
      * @param OutputInterface $output
      *
      * @return StreamOutput
      */
-    public static function getStreamOutput(OutputInterface $output)
+    private static function getStreamOutput(OutputInterface $output)
     {
         $memory = fopen('php://memory', 'rw');
 
@@ -66,26 +79,54 @@ class Application extends \Symfony\Component\Console\Application
     /**
      * {@inheritdoc}
      */
-    public function renderException(\Exception $e, OutputInterface $output)
-    {
-        if ($e instanceof UserException) {
+    public function renderException(\Exception $e, OutputInterface $output ) {
+        if ($e instanceof UserException || !self::$application) {
             parent::renderException($e, $output);
         } else {
-            $errorStream = self::getStreamOutput($output);
+            self::writeException($e, $output);
+        }
+    }
 
-            parent::renderException($e, $errorStream);
+    /**
+     * @param \Throwable $e
+     * @param OutputInterface $output
+     */
+    private function parentRenderException(\Throwable $e, OutputInterface $output)
+    {
+        parent::renderException($e, $output);
+    }
 
-            rewind($errorStream->getStream());
-            $exception = stream_get_contents($errorStream->getStream());
+    /**
+     * @param \Throwable $e
+     * @param OutputInterface $output
+     * @param int $verbosity
+     */
+    public static function writeException(
+        \Throwable $e,
+        OutputInterface $output,
+        int $verbosity = OutputInterface::VERBOSITY_NORMAL
+    )
+    {
+        $errorStream = self::getStreamOutput($output);
 
-            $console = new ConsoleOutput();
+        self::$application->parentRenderException($e, $errorStream);
 
-            $explode = explode("\n", rtrim($exception));
-            foreach ($explode as &$line) {
+        rewind($errorStream->getStream());
+        $exception = stream_get_contents($errorStream->getStream());
+
+        $console = new ConsoleOutput();
+
+        $explode = explode("\n", rtrim($exception));
+        foreach ($explode as $i => &$line) {
+            if ($i !== 0) {
                 $line = $console->prefixWithTimestamp($line);
             }
+        }
 
-            $output->write(implode("\n", $explode) . "\n");
+        if (method_exists($output, 'getErrorOutput')) {
+            $output->getErrorOutput()->write(implode("\n", $explode) . "\n", true, $verbosity);
+        } else {
+            $output->write(implode("\n", $explode) . "\n", true, $verbosity);
         }
     }
 }
