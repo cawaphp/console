@@ -91,11 +91,10 @@ class App extends AbstractApp
 
     /**
      * @param string $path
-     * @param string $namespace
      *
      * @return $this|self
      */
-    public function addCommandDir(string $path, string $namespace) : self
+    public function addCommandDir(string $path) : self
     {
         $declared = get_declared_classes();
 
@@ -111,12 +110,9 @@ class App extends AbstractApp
         $currentClasses = get_declared_classes();
 
         foreach (array_diff($currentClasses, $declared) as $class) {
-            if (stripos($class, $namespace) === 0) {
-
-                $reflection = new \ReflectionClass($class);
-                if ($reflection->isInstantiable()) {
-                    self::$application->add(new $class);
-                }
+            $reflection = new \ReflectionClass($class);
+            if ($reflection->isInstantiable() && is_subclass_of($class, Command::class)) {
+                self::$application->add(new $class);
             }
         }
 

@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 
-class Command extends \Symfony\Component\Console\Command\Command
+abstract class Command extends \Symfony\Component\Console\Command\Command
 {
     /**
      * @var int
@@ -69,6 +69,14 @@ class Command extends \Symfony\Component\Console\Command\Command
     protected $input;
 
     /**
+     * @return InputInterface
+     */
+    public function getInput() : InputInterface
+    {
+        return $this->input;
+    }
+
+    /**
      * @param InputInterface $input
      *
      * @return $this|self
@@ -84,6 +92,14 @@ class Command extends \Symfony\Component\Console\Command\Command
      * @var ConsoleOutput
      */
     protected $output;
+
+    /**
+     * @return ConsoleOutput
+     */
+    public function getOutput() : ConsoleOutput
+    {
+        return $this->output;
+    }
 
     /**
      * @param ConsoleOutput $output
