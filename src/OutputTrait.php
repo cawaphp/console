@@ -33,7 +33,6 @@ trait OutputTrait
         parent::doWrite($message, $newline);
     }
 
-
     /**
      * @var bool
      */
@@ -69,7 +68,6 @@ trait OutputTrait
      */
     public function prefixWithTimestamp($message)
     {
-
         if (!($this->prefix & ConsoleOutput::PREFIX_TIMESTAMP || $this->prefix & ConsoleOutput::PREFIX_DURATION)) {
             return $message;
         }
@@ -88,7 +86,7 @@ trait OutputTrait
                 $microtime,
                 str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)
             );
-        } else if ($this->prefix & ConsoleOutput::PREFIX_DURATION) {
+        } elseif ($this->prefix & ConsoleOutput::PREFIX_DURATION) {
             $prefix = sprintf(
                 '<fg=cyan>[+%s s]</>',
                 str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)

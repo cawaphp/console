@@ -14,9 +14,7 @@ declare (strict_types = 1);
 namespace Cawa\Console;
 
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\StreamOutput;
 
 abstract class Command extends \Symfony\Component\Console\Command\Command
 {
@@ -60,7 +58,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
      */
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
-       return !is_null($this->exitCode) ? $this->exitCode : 0;
+        return !is_null($this->exitCode) ? $this->exitCode : 0;
     }
 
     /**

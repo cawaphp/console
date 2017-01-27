@@ -41,7 +41,7 @@ class Application extends \Symfony\Component\Console\Application
                 $output->isDecorated(),
                 $output->getFormatter()
             );
-      }
+        }
 
         if ($command instanceof \Cawa\Console\Command) {
             $command->setInput($input)
@@ -79,7 +79,8 @@ class Application extends \Symfony\Component\Console\Application
     /**
      * {@inheritdoc}
      */
-    public function renderException(\Exception $e, OutputInterface $output ) {
+    public function renderException(\Exception $e, OutputInterface $output)
+    {
         if ($e instanceof UserException || !self::$application) {
             parent::renderException($e, $output);
         } else {
@@ -105,8 +106,7 @@ class Application extends \Symfony\Component\Console\Application
         \Throwable $e,
         OutputInterface $output,
         int $verbosity = OutputInterface::VERBOSITY_NORMAL
-    )
-    {
+    ) {
         $errorStream = self::getStreamOutput($output);
 
         self::$application->parentRenderException($e, $errorStream);

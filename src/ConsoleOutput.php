@@ -37,7 +37,6 @@ class ConsoleOutput extends BaseConsoleOutput implements ConsoleOutputInterface
             $this->isDecorated(),
             $this->getFormatter()
         ));
-
     }
 
     const PREFIX_TIMESTAMP = 1;
