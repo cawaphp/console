@@ -14,6 +14,8 @@ declare (strict_types = 1);
 namespace Cawa\Console;
 
 use Cawa\App\AbstractApp;
+use Cawa\Error\ErrorEvent;
+use Cawa\Events\DispatcherFactory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
@@ -23,6 +25,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class App extends AbstractApp
 {
+    use DispatcherFactory;
+
     /**
      * @var
      */
@@ -56,6 +60,8 @@ class App extends AbstractApp
         if (!error_reporting() || $exception->getLine() == 0) {
             return;
         }
+
+        self::emit(new ErrorEvent($exception));
 
         $output = new ConsoleOutput(
             OutputInterface::VERBOSITY_VERY_VERBOSE
