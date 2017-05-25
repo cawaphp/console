@@ -36,6 +36,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
     public function setStart(float $start = null) : self
     {
         $this->start = $start ?? microtime(true);
+        $this->differential = $this->start;
 
         return $this;
     }
@@ -47,6 +48,23 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
     {
         return $this->start ? round((microtime(true) - $this->start), 3) : 0;
     }
+
+    /**
+     * @var float
+     */
+    protected $differential;
+
+    /**
+     * @return float
+     */
+    public function getDifferentialDuration() : float
+    {
+        $return = round((microtime(true) - $this->differential), 3);
+        $this->differential = microtime(true);
+
+        return $return;
+    }
+
 
     /**
      * @param InputInterface $input

@@ -28,7 +28,7 @@ class App extends AbstractApp
     use DispatcherFactory;
 
     /**
-     * @var
+     * @var int
      */
     private static $exitCode;
 

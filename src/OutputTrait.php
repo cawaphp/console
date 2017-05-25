@@ -26,6 +26,11 @@ trait OutputTrait
      */
     protected function doWrite($message, $newline)
     {
+        // bug with progress bar don't understand
+        if ($message === "\e[2K") {
+            return parent::doWrite("\033[2K", false);
+        }
+
         if (trim($message) != '') {
             $message = $this->prefixWithTimestamp($message);
         }
