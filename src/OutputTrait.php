@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare (strict_types = 1);
+declare(strict_types = 1);
 
 namespace Cawa\Console;
 
@@ -65,7 +65,7 @@ trait OutputTrait
     private $previous;
 
     /**
-     * Add timestamp/duration to given string
+     * Add timestamp/duration to given string.
      *
      * @param string $message
      *

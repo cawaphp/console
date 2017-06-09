@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-declare (strict_types = 1);
+declare(strict_types = 1);
 
 namespace Cawa\Console;
 
@@ -118,7 +118,7 @@ class App extends AbstractApp
         foreach (array_diff($currentClasses, $declared) as $class) {
             $reflection = new \ReflectionClass($class);
             if ($reflection->isInstantiable() && is_subclass_of($class, Command::class)) {
-                self::$application->add(new $class);
+                self::$application->add(new $class());
             }
         }
 
