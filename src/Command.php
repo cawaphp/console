@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace Cawa\Console;
 
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -69,8 +70,6 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @throws UserException
-     *
      * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output) : int
@@ -126,5 +125,34 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         $this->output = $output;
 
         return $this;
+    }
+
+    /**
+     * @param string $class
+     * @param ConsoleOutput $output
+     * @param array $inputs
+     *
+     * @return int
+     */
+    public static function executeCommand(string $class, ConsoleOutput $output, array $inputs) : int
+    {
+        if (!class_exists($class)) {
+            throw new \RuntimeException((sprintf("Undefined class '%s'", $class)));
+        }
+
+        $command = new $class();
+
+        if (!$command instanceof Command) {
+            throw new \RuntimeException(sprintf("Invalid class '%s'", $class));
+        }
+
+        $input = new ArrayInput($inputs, $command->getDefinition());
+
+        $command
+            ->setInput($input)
+            ->setOutput($output)
+            ->setStart();
+
+        return $command->execute($input, $output);
     }
 }
