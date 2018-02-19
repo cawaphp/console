@@ -22,6 +22,27 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 trait OutputTrait
 {
     /**
+     * @var Command
+     */
+    private $command;
+
+    /**
+     * @param Command $command
+     *
+     * @return self
+     */
+    public function setCommand(Command $command) : self
+    {
+        $this->command = $command;
+
+        if ($this instanceof ConsoleOutput && $this->getErrorOutput() instanceof ErrorOutput) {
+            $this->getErrorOutput()->setCommand($command);
+        }
+
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function doWrite($message, $newline)
@@ -73,7 +94,11 @@ trait OutputTrait
      */
     public function prefixWithTimestamp($message)
     {
-        if (!($this->prefix & ConsoleOutput::PREFIX_TIMESTAMP || $this->prefix & ConsoleOutput::PREFIX_DURATION)) {
+        if (!(
+            $this->prefix & ConsoleOutput::PREFIX_TIMESTAMP ||
+            $this->prefix & ConsoleOutput::PREFIX_DURATION ||
+            $this->prefix & ConsoleOutput::PREFIX_CLASSNAME
+        )) {
             return $message;
         }
 
@@ -84,25 +109,31 @@ trait OutputTrait
         $microtime = substr((string) round($microtime, 3), 2, 3);
         $microtime = str_pad(is_bool($microtime) ? '0' : $microtime, 3, '0');
 
-        if ($this->prefix & ConsoleOutput::PREFIX_TIMESTAMP && $this->prefix & ConsoleOutput::PREFIX_DURATION) {
-            $prefix = sprintf(
-                '<fg=cyan>[%s.%s]</> <fg=yellow>[+%s s]</>',
-                date('Y-m-d H:i:s'),
-                $microtime,
-                str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)
-            );
-        } elseif ($this->prefix & ConsoleOutput::PREFIX_DURATION) {
-            $prefix = sprintf(
-                '<fg=cyan>[+%s s]</>',
-                str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)
-            );
-        } else {
-            $prefix = sprintf(
-                '<fg=cyan>[%s.%s]</>',
+        $prefixs = [];
+
+        if ($this->prefix & ConsoleOutput::PREFIX_TIMESTAMP) {
+            $prefixs[] = sprintf(
+                '<fg=yellow>[%s.%s]</>',
                 date('Y-m-d H:i:s'),
                 $microtime
             );
         }
+
+        if ($this->prefix & ConsoleOutput::PREFIX_DURATION) {
+            $prefixs[] = sprintf(
+                '<fg=cyan>[+%s s]</>',
+                str_pad((string) $diff, 9, ' ', STR_PAD_LEFT)
+            );
+        }
+
+        if ($this->prefix & ConsoleOutput::PREFIX_CLASSNAME && isset($this->command)) {
+            $prefixs[] = sprintf(
+                '<fg=magenta>[%s]</>',
+                get_class($this->command)
+            );
+        }
+
+        $prefix = implode(' ', $prefixs);
 
         $prefix = $this->getFormatter()->format($prefix);
         $message = str_pad($prefix, strlen($prefix) + 1) . $message;

@@ -32,15 +32,17 @@ class ConsoleOutput extends BaseConsoleOutput implements ConsoleOutputInterface
         parent::__construct($verbosity, $decorated, $formatter);
 
         $error = fopen($this->hasStderrSupport() ? 'php://stderr' : 'php://output', 'w');
-        $this->setErrorOutput(new ErrorOutput($error,
-            $this->getVerbosity(),
-            $this->isDecorated(),
-            $this->getFormatter()
-        ));
+        $this->setErrorOutput((new ErrorOutput($error,
+                $this->getVerbosity(),
+                $this->isDecorated(),
+                $this->getFormatter()
+            ))
+        );
     }
 
     const PREFIX_TIMESTAMP = 1;
     const PREFIX_DURATION = 2;
+    const PREFIX_CLASSNAME = 4;
 
     const ERROR_ERROR = '<bg=red;fg=white>%s</>';
     const ERROR_WARNING = '<fg=red>%s</>';

@@ -122,7 +122,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
      */
     public function setOutput(ConsoleOutput $output)
     {
-        $this->output = $output;
+        $this->output = $output->setCommand($this);
 
         return $this;
     }
