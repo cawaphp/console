@@ -22,6 +22,7 @@ use RegexIterator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 
 class App extends AbstractApp
 {
@@ -49,6 +50,7 @@ class App extends AbstractApp
 
         self::$application = new Application();
         self::$application->setAutoExit(false);
+        self::$application->setCatchExceptions(false);
     }
 
     /**
@@ -68,19 +70,10 @@ class App extends AbstractApp
         );
 
         if (!$exception instanceof \Exception) {
-            $exception = new \ErrorException(
-                $exception->getMessage(),
-                $exception->getCode(),
-                0,
-                $exception->getFile(),
-                $exception->getLine(),
-                $exception
-            );
-
-            self::$application->renderException($exception, $output);
-        } else {
-            self::$application->renderException($exception, $output);
+            $exception = new FatalThrowableError($exception);
         }
+
+        self::$application->renderException($exception, $output);
     }
 
     /**
